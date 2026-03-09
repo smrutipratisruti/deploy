@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractTextFromPDF } from '../../../lib/pdf-loader';
-import connectDB from '../../../lib/mongodb';
+// Change: import connectDB from '../../../lib/mongodb';
+// To this:
+import { connectDB } from '../../../lib/mongodb';
 import Resume from '../../../models/Resume';
 
 // Force Node.js runtime (Important for pdf-parse)

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // We no longer need serverExternalPackages for the old library
 };
 
 export default nextConfig;
