@@ -5,26 +5,32 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     const uint8Array = new Uint8Array(buffer);
     const result = await extractText(uint8Array);
     
-    let extractedText = "";
+    let rawText = "";
 
-    // If result has a pages array, join them; otherwise, check the text property
-    if ((result as any).pages && Array.isArray((result as any).pages)) {
-      extractedText = (result as any).pages.map((p: any) => p.text).join("\n");
-    } else {
-      extractedText = (result as any)?.text || result;
+    // 💡 Handle different return types from unpdf
+    if (typeof result === 'string') {
+      rawText = result;
+    } else if (Array.isArray(result)) {
+      // If it's an array of strings
+      rawText = result.join(" ");
+    } else if (result && typeof result === 'object') {
+      // If it's the standard object format { text: "...", pages: [...] }
+      const anyResult = result as any;
+      rawText = anyResult.text || anyResult.pages?.map((p: any) => p.text).join(" ") || "";
     }
 
-    // Clean up extra whitespace
-    const finalOutput = typeof extractedText === 'string' ? extractedText.trim() : "";
+    // Now that we definitely have a string, we can safely trim it
+    const cleanText = rawText.toString().trim();
 
-    if (!finalOutput) {
-      throw new Error("No readable text found in this PDF.");
+    if (!cleanText || cleanText.length < 10) {
+      throw new Error("PDF content is empty or unreadable.");
     }
 
-    console.log("✅ Text Extracted Successfully (Length:", finalOutput.length, ")");
-    return finalOutput;
+    console.log("✅ Text Extracted. Length:", cleanText.length);
+    return cleanText;
+
   } catch (error: any) {
-    console.error("PDF Parsing Error:", error.message);
+    console.error("Extraction Error:", error.message);
     throw new Error(`Failed to parse PDF: ${error.message}`);
   }
 }
