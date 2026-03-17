@@ -1,45 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractTextFromPDF } from '../../../lib/pdf-loader';
-// Change: import connectDB from '../../../lib/mongodb';
-// To this:
 import { connectDB } from '../../../lib/mongodb';
+import { analyzeResumeWithAI } from '../../../lib/gemini';
 import Resume from '../../../models/Resume';
 
-// Force Node.js runtime (Important for pdf-parse)
 export const runtime = 'nodejs';
 
-// Use a NAMED EXPORT for the POST method
+// ... existing imports ...
+
 export async function POST(req: NextRequest) {
   try {
-    console.log("--- Upload API Hit ---");
     await connectDB();
-    
     const formData = await req.formData();
     const file = formData.get('file') as File;
 
-    if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-    }
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
+    // 1. Extract Text
     const extractedText = await extractTextFromPDF(buffer);
-    console.log("Text Extracted Successfully");
+    console.log("✅ Text Extracted. Length:", extractedText.length);
 
+    // 2. 💡 CALL THE AI (Make sure 'await' is here!)
+    console.log("--- Calling Gemini AI ---");
+    const aiAnalysis = await analyzeResumeWithAI(extractedText);
+
+    // 3. Save to MongoDB
     const newResume = await Resume.create({
-      userId: "temp-user-123", 
-      fileName: file.name,
-      content: extractedText,
-    });
+  userId: "temp-user-123", // 💡 Add this line!
+  fileName: file.name,
+  content: extractedText,
+  analysis: aiAnalysis,
+});
 
+    // 4. 💡 SEND THE DATA BACK TO FRONTEND
     return NextResponse.json({ 
-      message: "✅ Resume processed successfully!", 
-      id: newResume._id 
+      success: true, 
+      id: newResume._id,
+      data: aiAnalysis // This is what the frontend 'page.tsx' is looking for!
     });
 
   } catch (error: any) {
-    console.error("Backend Error:", error);
+    console.error("Critical Backend Error:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
