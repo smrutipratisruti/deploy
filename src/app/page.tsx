@@ -5,8 +5,8 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  // 💡 New state to hold the AI results
   const [analysis, setAnalysis] = useState<any>(null);
+  const [jd, setJd] = useState("");
 
   const handleUpload = async () => {
     if (!file) {
@@ -16,10 +16,11 @@ export default function Home() {
     
     setLoading(true);
     setMessage("");
-    setAnalysis(null); // Clear previous results
+    setAnalysis(null); 
     
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('jd', jd); // ✅ CRITICAL: Sending the JD to the backend
 
     try {
       const res = await fetch('/api/upload', {
@@ -30,7 +31,6 @@ export default function Home() {
       
       if (res.ok) {
         setMessage(`✅ Success! Analysis Complete.`);
-        // 💡 Catch the data returned from route.ts
         setAnalysis(data.data); 
       } else {
         setMessage(`❌ Error: ${data.error || "Upload failed"}`);
@@ -43,89 +43,126 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-zinc-50">
-      <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl border border-zinc-200">
-        <h1 className="text-3xl font-extrabold mb-2 text-zinc-900">AI Career Copilot</h1>
-        <p className="text-zinc-500 mb-8">Upload your resume to start the AI analysis.</p>
+    <main className="flex min-h-screen flex-col items-center p-8 bg-zinc-50 font-sans">
+      {/* --- Input Section --- */}
+      <div className="w-full max-w-2xl bg-white p-10 rounded-3xl shadow-xl border border-zinc-200">
+        <h1 className="text-4xl font-black mb-2 text-zinc-900 tracking-tight">Career Copilot <span className="text-blue-600">AI</span></h1>
+        <p className="text-zinc-500 mb-8 font-medium">Your personal AI Mentor</p>
         
         <div className="space-y-6">
-          <div className="group relative">
+          <div className="p-6 border-2 border-dashed border-zinc-200 rounded-2xl hover:border-blue-400 transition-colors group">
             <input 
               type="file" 
               accept=".pdf"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+              className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-zinc-900 file:text-white hover:file:bg-zinc-800 cursor-pointer"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-zinc-700 uppercase tracking-wider">Target Job Description (Optional)</label>
+            <textarea
+              value={jd}
+              onChange={(e) => setJd(e.target.value)}
+              placeholder="Paste the JD here to get a specific match analysis..."
+              className="w-full h-32 p-4 rounded-2xl border border-zinc-200 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none transition-all text-sm text-zinc-600 bg-zinc-50/50"
             />
           </div>
           
           <button
-  onClick={handleUpload}
-  disabled={loading}
-  className="w-full bg-zinc-900 text-white py-3 rounded-xl font-bold hover:bg-zinc-800 transition-all disabled:bg-zinc-400"
->
-  {loading ? (
-    <span className="flex items-center justify-center">
-      <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      Optimization Suggestions
-    </span>
-  ) : (
-    "Analyze Resume"
-  )}
-</button>
+            onClick={handleUpload}
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:bg-zinc-400 disabled:shadow-none"
+          >
+            {loading ? "Mentor is analyzing..." : "Perform Audit"}
+          </button>
 
           {message && (
-            <div className={`p-4 rounded-lg text-sm font-medium ${message.includes('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+            <div className={`p-4 rounded-xl text-sm font-bold text-center ${message.includes('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
               {message}
             </div>
           )}
         </div>
       </div>
 
-      {/* 💡 The Results Display (Only shows after success) */}
+      {/* --- Results Section (The Mentor Audit) --- */}
       {analysis && (
-        <div className="w-full max-w-2xl mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-white p-8 rounded-2xl shadow-xl border border-zinc-200 space-y-6">
-            <div className="flex justify-between items-center border-b pb-4">
-              <h2 className="text-xl font-bold text-zinc-900">Analysis Results</h2>
-              <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                ATS Score: {analysis.atsScore || "N/A"}
-              </span>
+        <div className="w-full max-w-4xl mt-12 space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20">
+          
+          {/* Header Card */}
+          <div className="bg-white p-8 rounded-3xl border border-zinc-200 shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-center md:text-left">
+              <span className="text-xs font-black uppercase tracking-widest text-blue-500 bg-blue-50 px-3 py-1 rounded-full">{analysis.analysis_type} Audit</span>
+              <h2 className="text-3xl font-black text-zinc-900 mt-2">{analysis.profile_summary?.primary_domain || "Software Engineer"}</h2>
+              <p className="text-zinc-500 font-bold">{analysis.profile_summary?.candidate_level}</p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-2">Top Skills Identified</h3>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.topSkills?.map((skill: string, i: number) => (
-                    <span key={i} className="bg-zinc-100 text-zinc-800 px-3 py-1 rounded-md text-sm border border-zinc-200">{skill}</span>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-bold text-red-500 uppercase tracking-wider mb-2">Suggestions</h3>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.missingSkills?.map((skill: string, i: number) => (
-                    <span key={i} className="bg-red-50 text-red-700 px-3 py-1 rounded-md text-sm border border-red-100">{skill}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t">
-              <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2">Recommended Projects</h3>
-              <ul className="space-y-2">
-                {analysis.projectSuggestions?.map((proj: string, i: number) => (
-                  <li key={i} className="text-zinc-700 text-sm flex items-start">
-                    <span className="mr-2 text-blue-500">▹</span> {proj}
-                  </li>
-                ))}
-              </ul>
+            <div className="bg-zinc-900 text-white p-6 rounded-2xl text-center min-w-[160px]">
+              <div className="text-4xl font-black">{analysis.ats_score?.score}%</div>
+              <div className="text-[10px] font-bold uppercase tracking-tighter opacity-60">Estimated ATS Score</div>
             </div>
           </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Score Reasoning */}
+            <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-lg">
+              <h3 className="font-black text-zinc-900 uppercase text-xs tracking-widest mb-4">Score Reasoning</h3>
+              <p className="text-sm text-zinc-600 leading-relaxed italic">"{analysis.ats_score?.reasoning}"</p>
+            </div>
+
+            {/* Missing Keywords */}
+            <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-lg">
+              <h3 className="font-black text-zinc-900 uppercase text-xs tracking-widest mb-4">ATS Keyword Gaps</h3>
+              <div className="flex flex-wrap gap-2">
+                {analysis.missing_keywords?.map((word: string, i: number) => (
+                  <span key={i} className="px-3 py-1 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100">+ {word}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Gaps Analysis Table */}
+          <div className="bg-white rounded-3xl border border-zinc-200 shadow-lg overflow-hidden">
+            <div className="p-6 border-b border-zinc-100 bg-zinc-50/50">
+              <h3 className="font-black text-zinc-900 uppercase text-xs tracking-widest">Market Gap Analysis</h3>
+            </div>
+            <div className="divide-y divide-zinc-100">
+              {analysis.gaps_analysis?.map((gap: any, i: number) => (
+                <div key={i} className="p-6 grid md:grid-cols-3 gap-4 items-center">
+                  <div>
+                    <span className="font-bold text-zinc-900 block">{gap.skill}</span>
+                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${gap.importance === 'High' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`}>
+                      {gap.importance} Priority
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-500 italic">{gap.reason}</p>
+                  <p className="text-xs font-bold text-zinc-700">{gap.impact}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Resume Transformation */}
+          <div className="bg-zinc-900 rounded-3xl p-8 text-white shadow-2xl">
+            <h3 className="text-xl font-bold mb-8 flex items-center gap-3">
+              <span className="bg-blue-600 p-2 rounded-lg text-xs">AI</span> 
+              Resume Transformation
+            </h3>
+            <div className="space-y-8">
+              {analysis.improved_bullets?.map((item: any, i: number) => (
+                <div key={i} className="space-y-4">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Your Current Version</span>
+                    <p className="text-sm text-zinc-400 italic">"{item.original}"</p>
+                  </div>
+                  <div className="flex flex-col gap-2 bg-zinc-800/50 p-6 rounded-2xl border border-zinc-700 border-l-4 border-l-green-500">
+                    <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">Mentor Recommended Version</span>
+                    <p className="text-sm text-green-50 font-medium leading-relaxed">{item.improved}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       )}
     </main>

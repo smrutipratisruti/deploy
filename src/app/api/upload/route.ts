@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const formData = await req.formData();
     const file = formData.get('file') as File;
-
+    const jd = formData.get('jd') as string;
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     // 2. 💡 CALL THE AI (Make sure 'await' is here!)
     console.log("--- Calling Gemini AI ---");
-    const aiAnalysis = await analyzeResumeWithAI(extractedText);
+    const aiAnalysis = await analyzeResumeWithAI(extractedText, jd);
 
     // 3. Save to MongoDB
     const newResume = await Resume.create({
