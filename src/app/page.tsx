@@ -59,12 +59,22 @@ export default function Home() {
           </div>
           
           <button
-            onClick={handleUpload}
-            disabled={loading}
-            className="w-full bg-zinc-900 text-white py-3 rounded-xl font-bold hover:bg-zinc-800 transition-all disabled:bg-zinc-300 disabled:cursor-not-allowed shadow-md"
-          >
-            {loading ? "Analyzing with AI..." : "Analyze Resume"}
-          </button>
+  onClick={handleUpload}
+  disabled={loading}
+  className="w-full bg-zinc-900 text-white py-3 rounded-xl font-bold hover:bg-zinc-800 transition-all disabled:bg-zinc-400"
+>
+  {loading ? (
+    <span className="flex items-center justify-center">
+      <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Optimization Suggestions
+    </span>
+  ) : (
+    "Analyze Resume"
+  )}
+</button>
 
           {message && (
             <div className={`p-4 rounded-lg text-sm font-medium ${message.includes('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -96,7 +106,7 @@ export default function Home() {
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-red-500 uppercase tracking-wider mb-2">Gaps for 20 LPA</h3>
+                <h3 className="text-sm font-bold text-red-500 uppercase tracking-wider mb-2">Suggestions</h3>
                 <div className="flex flex-wrap gap-2">
                   {analysis.missingSkills?.map((skill: string, i: number) => (
                     <span key={i} className="bg-red-50 text-red-700 px-3 py-1 rounded-md text-sm border border-red-100">{skill}</span>

@@ -34,11 +34,12 @@ export async function POST(req: NextRequest) {
 });
 
     // 4. 💡 SEND THE DATA BACK TO FRONTEND
-    return NextResponse.json({ 
-      success: true, 
-      id: newResume._id,
-      data: aiAnalysis // This is what the frontend 'page.tsx' is looking for!
-    });
+    // ... after saving to MongoDB ...
+
+return NextResponse.json({ 
+  success: true, 
+  data: aiAnalysis // 💡 Ensure this key is called 'data' to match your page.tsx
+});
 
   } catch (error: any) {
     console.error("Critical Backend Error:", error.message);
